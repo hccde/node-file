@@ -1,0 +1,32 @@
+{
+  "name": "node-file",
+  "version": "0.1.0",
+  "description": "offer advanced file api",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hccde/node-file.git"
+  },
+  "keywords": [
+    "nodejs",
+    "file",
+    "npm",
+    "node",
+    "fs"
+  ],
+  "author": "admos",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hccde/node-file/issues"
+  },
+  "homepage": "https://github.com/hccde/node-file#readme",
+  "dependencies": {
+    "glob": "^7.1.2"
+  }
+}
