@@ -4,13 +4,14 @@ let Path = require('./lib/interface/Path');
 let fs = require('fs');
 class File {
 	constructor(){
+
 	}
 	//local
 	static copy(){}
 	static move(){}
 	static delete(){}
 	
-
+	//softlink !!! todo
 	//file
 	static write(){}//todo sync 
 	static writeSync(){}
@@ -32,7 +33,7 @@ class File {
 	static post(){}
 }
 
-File.copy = function(source,dest){
+File.copy = function(source,dest){//softlink todo
 
 }
 File.mkdir = async function(_path,mode = 0o777){
@@ -40,8 +41,8 @@ File.mkdir = async function(_path,mode = 0o777){
 		_path = await utils.pathWrapper(_path)	
 	}
 	if(_path instanceof Path){
-		let existPath = await utils.findExistDir(_path);
-
+		let pathObj = await utils.findExistDir(_path);
+		let existPath = pathObj.existPath;
 		if(existPath.length == _path.dirSep.length){
 			return _path.absolutePath;
 		}
