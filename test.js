@@ -2,7 +2,8 @@ let File = require('./index');
 let utils = require('./lib/utils');
 let Path = require('./lib/interface/Path');
 let path = require('path');
-// File.mkdirSync('./my/hcc/cong/de/')
+File.writeSync('./my/test.js','44444')
+// console.log(File.writeSync('./my/test.js','22222'));
 // File.mkdir('./my/hcc/cong/de/').then(function(value){
 // 	console.log(value)
 // })

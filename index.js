@@ -9,9 +9,21 @@ class File {
 	static copy(){}
 	static move(){}
 	static delete(){}
-	static write(){}
+	
+
+	//file
+	static write(){}//todo sync 
+	static writeSync(){}
+	static open(){} 
+	static openSync(){}
+	static writeFile(){}
+	static writeFileSync(){}
+	//dir
 	static mkdirSync(){}
 	static mkdir(){}
+	static rmdir(){}
+	static rmdirSync(){}
+
 	static server(){}
 	static watch(){}
 	static append(){}
@@ -23,7 +35,7 @@ class File {
 File.copy = function(source,dest){
 
 }
-File.mkdir = async function(_path,mode = 0o777){ // loop itself
+File.mkdir = async function(_path,mode = 0o777){
 	if(typeof _path === "string"){
 		_path = await utils.pathWrapper(_path)	
 	}
@@ -52,7 +64,6 @@ File.mkdirSync = function(_path,mode = 0o777){
 		_path = new Path(_path);
 	}
 	if(_path instanceof Path){
-		console.log(_path.pathList)
 		for(let i = 1;i<_path.pathList.length;i++){//from index=1 because root path `/` can't be operated
 			try{
 				fs.mkdirSync(_path.pathList[i],mode);	
@@ -66,8 +77,95 @@ File.mkdirSync = function(_path,mode = 0o777){
 		throw Error(`first param must be string or an instance of Path`)
 	}
 }
+// writeFile(){
 
-File.write = function(dest,str){
-	fs.writeFileSync(dest,str);
+// }
+
+File.open = async function(_path,flag,mode=0o666){ //open file will not create dir automatally
+	return await new Promise(function(resolve,reject){
+		fs.open(_path,flag,mode,function(err,fd){
+			if(err)
+				reject(err)
+			resolve(fd)
+		})
+	})
+}
+File.openSync = fs.openSync;
+// @test
+File.write = async function(dest,buffer,offset,length,position){
+	let fd;
+	if(typeof dest === 'string'){
+		let pathObj = new Path(dest.toString());
+		if(pathObj.isDir){
+			throw Error(`given path is a dir,cant write,if want to create dir ,please use File.mkdir`)
+		}
+		await File.mkdir(pathObj);
+		fd = await File.open(pathObj.absolutePath,'w');
+	}else if(dest instanceof Number){
+		fd = dest;
+	}
+
+	if(buffer instanceof Buffer){
+		return await File.rawWrite(fd,buffer,offset,length,position);
+	}else{//write string  rename params
+		let string = buffer,positionStr = offset,encoding = length;
+		return await File.writeStr(fd,string,positionStr,encoding)
+	}
+}
+
+File.writeSync = function(dest,buffer,offset,length,position){
+	let fd;
+	if(typeof dest === 'string'){
+		let pathObj = new Path(dest.toString());
+		if(pathObj.isDir){
+			throw Error(`given path is a dir,cant write,if want to create dir ,please use File.mkdir`)
+		}
+		File.mkdirSync(pathObj);
+		fd = File.openSync(pathObj.absolutePath,'w');
+	}else if(dest instanceof Number){
+		fd = dest;
+	}
+
+	if(buffer instanceof Buffer){
+		return File.writeSync(fd,buffer,offset,length,position);
+	}else{//write string  rename params
+		let string = buffer,positionStr = offset,encoding = length;
+		return File.writeStrSync(fd,string,positionStr,encoding)
+	}
+}
+
+File.writeStr = async function(fd,string,position,encoding){
+	return await new Promise(function(resolve,reject){
+		fs.write(fd,string,position,encoding,function(err,written,string){
+			if(err)
+				reject(err)
+			resolve({
+				written:written,
+				string:string
+			})
+		});
+	})
+}
+File.writeStrSync = function(fd,string,position,encoding){
+		return fs.writeSync(fd,string,position,encoding);
+}
+
+File.rawWrite = async function(fd,buffer,offset,length,position){
+	return await new Promise(function(resolve,reject){
+		fs.write(fd,buffer,offset,length,position,function(err,fd){
+			if(err)
+				reject(err)
+			resolve(fd)
+		})
+	})
+}
+
+File.writeFile = async function(){
+
+}
+
+
+File.writeFileSync = function(){
+
 }
 module.exports = File
