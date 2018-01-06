@@ -9,6 +9,9 @@ class File {
 	//local
 	static copy(){}
 	static move(){}
+	static flat(){}
+	static dfs(){}
+	static bfs(){}
 	static delete(){}
 	//todo softlink circle
 	//when search file
@@ -39,6 +42,10 @@ class File {
 }
 
 File.copy = function(source,dest){//softlink todo
+
+}
+//todo
+File.dfs = async function(){
 
 }
 File.mkdir = async function(_path,mode = 0o777){
@@ -83,9 +90,21 @@ File.mkdirSync = function(_path,mode = 0o777){
 		throw Error(`first param must be string or an instance of Path`)
 	}
 }
-// writeFile(){
 
-// }
+// todo
+File.rmdir = async function(_path){
+	let pathObj = await utils.findExistDir(new Path(_path));
+	let existPath = pathObj.existPath;
+	if(pathObj.absolutePath === existPath){
+		throw Error('incorrect path,rmdir must accept a exist path');
+	}
+	if(pathObj.isDir){
+		// rmdir
+	}else{
+		//is file rm file
+	}
+
+}
 
 File.open = async function(_path,flag,mode=0o666){ //open file will not create dir automatally
 	return await new Promise(function(resolve,reject){

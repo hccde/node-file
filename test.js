@@ -2,7 +2,10 @@ let File = require('./index');
 let utils = require('./lib/utils');
 let Path = require('./lib/interface/Path');
 let path = require('path');
-
+let fs = require('fs');
+File.rmdir('./my/files/a.js').then(function(value){
+	console.log(value)
+})
 // File.readFile('./my/file/a.js').then(function(value){
 // 	console.log(value.toString())
 // })
