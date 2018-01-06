@@ -10,15 +10,20 @@ class File {
 	static copy(){}
 	static move(){}
 	static delete(){}
+	//todo softlink circle
+	//when search file
+	static search(){}
 	
-	//softlink !!! todo
 	//file
-	static write(){}//todo sync 
+	static write(){}
 	static writeSync(){}
 	static open(){} 
 	static openSync(){}
 	static writeFile(){}
 	static writeFileSync(){}
+	static rawWriteFile(){}
+	static readFile(){}
+	static readFileSync(){}
 	//dir
 	static mkdirSync(){}
 	static mkdir(){}
@@ -59,7 +64,7 @@ File.mkdir = async function(_path,mode = 0o777){
 		throw Error(`first param must be string or an instance of Path`)
 	}
 }
-//todo
+
 File.mkdirSync = function(_path,mode = 0o777){
 	if(typeof _path === "string"){
 		_path = new Path(_path);
@@ -161,12 +166,52 @@ File.rawWrite = async function(fd,buffer,offset,length,position){
 	})
 }
 
-File.writeFile = async function(){
-
+File.writeFile = async function(_path,_data,option){
+	let fd;
+	if(typeof _path === 'string'){
+		let pathObj = new Path(_path.toString());
+		if(pathObj.isDir){
+			throw Error(`given path is a dir,cant write,if want to create dir ,please use File.mkdir`)
+		}
+		await File.mkdir(pathObj);
+		fd = await File.open(pathObj.absolutePath,'w');
+	}else if(_path instanceof Number){
+		fd = dest;
+	}
+	return await File.rawWriteFile(_path,_data,option);
+}
+File.rawWriteFile = async function(_path,_data,option){
+	return await new Promise(function(resolve,reject){
+		fs.writeFile(_path,option,function(err){
+			if(err)
+				reject(err);
+			resolve();
+		})
+	})
 }
 
-
-File.writeFileSync = function(){
-
+File.writeFileSync = function(_path,_data,option){
+	let fd;
+	if(typeof _path === 'string'){
+		let pathObj = new Path(_path.toString());
+		if(pathObj.isDir){
+			throw Error(`given path is a dir,cant write,if want to create dir ,please use File.mkdir`)
+		}
+		File.mkdirSync(pathObj);
+		fd = File.openSync(pathObj.absolutePath,'w');
+	}else if(_path instanceof Number){
+		fd = dest;
+	}
+	return fs.writeFileSync(_path,_data,option)
 }
+File.readFile= async function(_path,option){
+	return await new Promise(function(resolve,reject){
+		fs.readFile(_path,option,function(err,data){
+			if(err)
+				reject(err)
+			resolve(data);
+		})
+	})
+}
+File.readFileSync = fs.readFileSync;
 module.exports = File
