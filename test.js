@@ -3,9 +3,18 @@ let utils = require('./lib/utils');
 let Path = require('./lib/interface/Path');
 let path = require('path');
 let fs = require('fs');
-File.rmdir('./my/files/a.js').then(function(value){
-	console.log(value)
+fs.readdir('./my',function(err,list){
+	if(err)
+		console.log(err)
+	console.log(fs.lstatSync('./my/softlink').isSymbolicLink())
+	// list.forEach((e)=>{
+	// 	console.log(e);
+	// 	console.log(fs.lstatSync(e).isDirectory())
+	// })
 })
+// File.rmdir('./my/files/a.js').then(function(value){
+// 	console.log(value)
+// })
 // File.readFile('./my/file/a.js').then(function(value){
 // 	console.log(value.toString())
 // })

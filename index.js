@@ -32,6 +32,7 @@ class File {
 	static mkdir(){}
 	static rmdir(){}
 	static rmdirSync(){}
+	static ls(){}//readdir ll
 
 	static server(){}
 	static watch(){}
