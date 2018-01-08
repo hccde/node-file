@@ -9,6 +9,8 @@ class File {
 	}
 	//local
 	static copy(){}
+	static copyFile(){}
+	static merge(){}
 	static move(){}
 	static flat(){}
 	static bfs(){}
@@ -23,6 +25,8 @@ class File {
 	static writeSync(){}
 	static open(){} 
 	static openSync(){}
+	static close(){}
+	static closeSync(){}
 	static writeFile(){}
 	static writeFileSync(){}
 	static rawWriteFile(){}
@@ -37,6 +41,8 @@ class File {
 	static rmdirSync(){}
 	static rawrmdirSync(){}
 	static rawrmdir(){}
+	static rawmkdir(){}
+	static rawrmdirSync(){}
 	static ls(){}
 	static lsSync(){}
 	static ll(){}
@@ -49,9 +55,70 @@ class File {
 	static get(){}
 	static post(){}
 }
+//merge tow files
+File.merge = async function(dest,source){
+	let destPathObj = new Path(dest);
+	if(!destPathObj.isDir){
+		throw Error(`merge target must be dir`);
+	}
+	return await File.copy(source,dest,false);
+}
+//todo sigle file 
+File.copy = async function(source,dest,force = true){//if has existed,will delete
+	let pathObj = new Path(dest);
+	if(force == true){//dir has existed,delete it
+		try{
+			await File.rmdir(dest);
+		}catch(e){
+			// do nothing
+		}
+	}
+	if(source[source.length-1] !== path.sep){
+		let sourcePathObj = new Path(source);
+		let name = sourcePathObj.pathInfo.name+sourcePathObj.pathInfo.ext;
+		await File.mkdir(dest)
+		pathObj.isDir?dest += name:void 0;
+		return await File.rawcopyFile(source,dest);
+	}
+	let rootstr = '';
+	let {fileAll,dirAll,symbolLink} = await File.bfs(source);
+	let dirList = Object.keys(dirAll)
+	dirList.map(function(e,index){
+		if(index === 0){
+			rootstr = e;
+		}
+		if(force){
+			fs.mkdirSync(pathObj.absolutePath + Path.convToRelative(rootstr,e));
+		}else{
+			File.mkdirSync(pathObj.absolutePath + Path.convToRelative(rootstr,e))
+		}
+	});
 
-File.copy = function(source,dest){
+	//cp file
+	_.merge(fileAll,symbolLink);
 
+	let fileList = Object.keys(fileAll).map(function(e){
+		File.rawcopyFile(e,pathObj.absolutePath + Path.convToRelative(rootstr,e));
+	});
+	await Promise.all(fileList);
+	return true;
+}
+
+File.rawcopyFile = async function(src,dest,flags=0){
+	return new Promise(function(resolve,reject){
+		fs.copyFile(src,dest,flags,function(err){
+			if(err)
+				reject(err)
+			resolve(true);
+		})
+	})
+}
+
+File.rawcopyFileSync = fs.copyFile;
+
+File.move = async function(source,dest){
+	await File.copy(source,dest);
+	return await File.delete(source);
 }
 
 File.flat = async function(_path){
@@ -73,7 +140,7 @@ File.flat = async function(_path){
 	return res;
 }
 
-File.delete = async function(_path){
+File.delete = async function(_path){//delete file or dir
 	let pathObj = new Path(_path);
 	let absolutePath = pathObj.absolutePath;
 	if(!pathObj.isDir){
@@ -83,6 +150,10 @@ File.delete = async function(_path){
 		// dir
 		return await File.rmdir(_path)
 	}
+}
+//todo accept compare function
+File.search = async function(_path,type,time{//serach file or dir
+
 }
 //include path 
 File.bfs = async function(_path){
@@ -95,8 +166,10 @@ File.bfs = async function(_path){
 	let pathObj = await utils.findExistDir(new Path(_path));
 	let existPath = pathObj.existPath;
 	if(pathObj.absolutePath !== existPath){
-		throw Error(`incorrect path:${pathObj.absolutePath},dfs must accept a exist path`);
+		throw Error(`incorrect path:${pathObj.absolutePath},bfs must accept a exist path`);
 	}
+	//include _path
+	dirAll[existPath] = pathObj.pathInfo.name;
 	let _list = fs.readdirSync(pathObj.absolutePath);
 	let _listStat = _list.map((e,index)=>{
 		return File.lstat(existPath+e).catch(function(err){
@@ -110,7 +183,6 @@ File.bfs = async function(_path){
 		let _key = existPath+e;
 		if(_listStat[index].isDirectory()){
 			_key+=path.sep
-			dirAll[_key] = _list[index];
 			_dirList.push(_key);
 		}else if(_listStat[index].isSymbolicLink()){
 			symbolLink[_key] = e;
@@ -118,7 +190,6 @@ File.bfs = async function(_path){
 			fileAll[_key] = e;
 		}
 	});
-
 	let resList = await Promise.all(_dirList.map((e)=>{
 		return File.bfs(e);
 	}));
@@ -126,9 +197,7 @@ File.bfs = async function(_path){
 		fileAll = _.merge(fileAll,e.fileAll);
 		dirAll = _.merge(dirAll,e.dirAll);
 		symbolLink = _.merge(symbolLink,e.symbolLink)
-	})
-	//include _path
-	dirAll[existPath] = pathObj.pathInfo.name
+	});
 	return {
 		fileAll,
 		dirAll,
@@ -146,6 +215,9 @@ File.bfsSync = function(_path){
 	let symbolLink = {};
 	let pathObj = new Path(_path);
 	let existPath = pathObj.absolutePath;
+	//include _path
+	dirAll[existPath] = pathObj.pathInfo.name;
+
 	let _list = fs.readdirSync(pathObj.absolutePath);
 	let _listStat = _list.map((e,index)=>{
 		return File.lstatSync(existPath+e);
@@ -156,7 +228,6 @@ File.bfsSync = function(_path){
 		let _key = existPath+e;
 		if(_listStat[index].isDirectory()){
 			_key+=path.sep
-			dirAll[_key] = _list[index];
 			_dirList.push(_key);
 		}else if(_listStat[index].isSymbolicLink()){
 			symbolLink[_key] = e;
@@ -237,7 +308,16 @@ File.mkdirSync = function(_path,mode = 0o777){
 		throw Error(`first param must be string or an instance of Path`)
 	}
 }
-
+File.rawmkdir = function(_path,mode=0o777){
+	return new Promise(function(resolve,reject){
+		fs.mkdir(_path,mode,function(err){
+			if(err)
+				reject(err)
+			resolve(true);
+		})
+	})
+}
+File.rawmkdirSync = fs.mkdirSync;
 // @test delete node_modules //maybe stackoverflow?
 File.rmdir = async function(_path){
 	let {fileAll,dirAll,symbolLink} = await File.bfs(_path);
@@ -351,6 +431,16 @@ File.open = async function(_path,flag,mode=0o666){ //open file will not create d
 	})
 }
 File.openSync = fs.openSync;
+File.close = async function(fd){
+	return new Promise(function(resolve,reject){
+		fs.close(fs,function(err){
+			if(err)
+				reject(err)
+			resolve(true);
+		})
+	})
+}
+File.closeSync = fs.closeSync;
 // @test
 File.write = async function(dest,buffer,offset,length,position){
 	let fd;

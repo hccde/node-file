@@ -3,9 +3,12 @@ let utils = require('./lib/utils');
 let Path = require('./lib/interface/Path');
 let path = require('path');
 let fs = require('fs');
-File.delete('./my/').then(function(value){
-	console.log(value)
-});
+// File.delete('./my/').then(function(value){
+// 	console.log(value)
+// });
+File.merge('./my/','./my2/')
+// files.move('./my/','./my2/')
+// File.copy('./my/a.js','./my2/')
 // File.flat('./lib/').then(function(value){
 // 	console.log(value)
 // });
