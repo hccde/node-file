@@ -1,6 +1,7 @@
 let utils = require('./lib/utils');
 let path = require('path');
 let Path = require('./lib/interface/Path');
+let _ = require('lodash');
 let fs = require('fs');
 class File {
 	constructor(){
@@ -42,13 +43,81 @@ class File {
 	static post(){}
 }
 
-File.copy = function(source,dest){//softlink todo
+File.copy = function(source,dest){
 
 }
 //todo
-File.dfs = async function(){
+File.bfs = async function(_path){
+	if(_path[_path.length-1] != path.sep){
+		throw Error(`must be a dir,if you sure it's a dir,please add path.sep,in window:\\,unix:/`)
+	}
+	let fileAll ={};
+	let dirAll = {};
+	let symbolLink = {};
+	let pathObj = await utils.findExistDir(new Path(_path));
+	let existPath = pathObj.existPath;
+	if(pathObj.absolutePath !== existPath){
+		throw Error(`incorrect path:${pathObj.absolutePath},dfs must accept a exist path`);
+	}
+	let _list = fs.readdirSync(pathObj.absolutePath);
+	let _listStat = _list.map((e,index)=>{
+		return File.lstat(existPath+e).catch(function(err){
+			throw err;
+		})
+	})
+	_listStat = await Promise.all(_listStat);
+
+	let _dirList = [];
+	_list.forEach(function(e,index){
+		let _key = existPath+e;
+		if(_listStat[index].isDirectory()){
+			_key+=path.sep
+			dirAll[_key] = _list[index];
+			_dirList.push(_key);
+		}else if(_listStat[index].isSymbolicLink()){
+			symbolLink[_key] = e;
+		}else{
+			fileAll[_key] = e;
+		}
+	});
+
+	let resList = await Promise.all(_dirList.map((e)=>{
+		return File.dfs(e);
+	}));
+	resList.forEach(function(e){
+		fileAll = _.merge(fileAll,e.fileAll);
+		dirAll = _.merge(dirAll,e.dirAll)
+	})
+
+	return {
+		fileAll,
+		dirAll,
+		symbolLink
+	}
 
 }
+
+File.dfs = async function(_path){
+	let pathObj = await utils.findExistDir(new Path(_path));
+	let existPath = pathObj.existPath;
+	if(pathObj.absolutePath === existPath){
+		throw Error('incorrect path,bfs must accept a exist path');
+	}
+
+}
+
+File.lstat = async function(_path){
+	return  new Promise(function(resolve,reject){
+		fs.lstat(_path,function(err,fstats){
+			if(err)
+				reject(err);
+			resolve(fstats);
+		})
+	})
+}
+
+File.lstatSync = fs.lstatSync;
+
 File.mkdir = async function(_path,mode = 0o777){
 	if(typeof _path === "string"){
 		_path = await utils.pathWrapper(_path)	
