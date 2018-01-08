@@ -3,7 +3,12 @@ let utils = require('./lib/utils');
 let Path = require('./lib/interface/Path');
 let path = require('path');
 let fs = require('fs');
-
+File.delete('./my/').then(function(value){
+	console.log(value)
+});
+// File.flat('./lib/').then(function(value){
+// 	console.log(value)
+// });
 // console.log(File.llSync('./test/'));
 // console.log(File.rmdirSync('./softlink/'))
 // console.log(File.bfsSync('./my/'))

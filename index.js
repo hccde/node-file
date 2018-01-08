@@ -53,6 +53,37 @@ class File {
 File.copy = function(source,dest){
 
 }
+
+File.flat = async function(_path){
+	let flatList = [];
+	let pathObj = await utils.findExistDir(new Path(_path));
+	if(pathObj.absolutePath !== pathObj.existPath){
+		throw Error(`incorrect path:${pathObj.absolutePath},flat must accept a exist path`);	
+	}
+	let {fileAll,dirAll,symbolLink} = await File.bfs(_path);
+	fileAll = _.merge(fileAll,symbolLink)
+	let fileList = Object.keys(fileAll);
+	let res = [];
+	fileList.map(function(e,index){
+		let flag = res.find(function(el){
+			return el === fileAll[e];
+		});
+		flag !== void 0 ?res.push(e):res.push(fileAll[e]);
+	});
+	return res;
+}
+
+File.delete = async function(_path){
+	let pathObj = new Path(_path);
+	let absolutePath = pathObj.absolutePath;
+	if(!pathObj.isDir){
+		//fileAll
+		return await File.deleteFile(_path)
+	}else{
+		// dir
+		return await File.rmdir(_path)
+	}
+}
 //include path 
 File.bfs = async function(_path){
 	if(_path[_path.length-1] != path.sep){
@@ -284,7 +315,7 @@ File.llSync = function(_path,option){
 	list = list.map(function(e){
 		return File.lstatSync(pathObj.absolutePath+e);
 	});
-	
+
    	list = list.map(function(e,index){
    		e = {raw:e}
    		e.name = rawList[index];
