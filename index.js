@@ -11,9 +11,9 @@ class File {
 	static copy(){}
 	static move(){}
 	static flat(){}
-	static dfs(){}
 	static bfs(){}
 	static delete(){}
+
 	//todo softlink circle
 	//when search file
 	static search(){}
@@ -26,6 +26,8 @@ class File {
 	static writeFile(){}
 	static writeFileSync(){}
 	static rawWriteFile(){}
+	static deleteFile(){}
+	static deleteFileSync(){}
 	static readFile(){}
 	static readFileSync(){}
 	//dir
@@ -33,7 +35,12 @@ class File {
 	static mkdir(){}
 	static rmdir(){}
 	static rmdirSync(){}
-	static ls(){}//readdir ll
+	static rawrmdirSync(){}
+	static rawrmdir(){}
+	static ls(){}
+	static lsSync(){}
+	static ll(){}
+	static llSync(){}
 
 	static server(){}
 	static watch(){}
@@ -46,7 +53,7 @@ class File {
 File.copy = function(source,dest){
 
 }
-//todo
+//include path 
 File.bfs = async function(_path){
 	if(_path[_path.length-1] != path.sep){
 		throw Error(`must be a dir,if you sure it's a dir,please add path.sep,in window:\\,unix:/`)
@@ -82,13 +89,15 @@ File.bfs = async function(_path){
 	});
 
 	let resList = await Promise.all(_dirList.map((e)=>{
-		return File.dfs(e);
+		return File.bfs(e);
 	}));
 	resList.forEach(function(e){
 		fileAll = _.merge(fileAll,e.fileAll);
-		dirAll = _.merge(dirAll,e.dirAll)
+		dirAll = _.merge(dirAll,e.dirAll);
+		symbolLink = _.merge(symbolLink,e.symbolLink)
 	})
-
+	//include _path
+	dirAll[existPath] = pathObj.pathInfo.name
 	return {
 		fileAll,
 		dirAll,
@@ -97,13 +106,50 @@ File.bfs = async function(_path){
 
 }
 
-File.dfs = async function(_path){
-	let pathObj = await utils.findExistDir(new Path(_path));
-	let existPath = pathObj.existPath;
-	if(pathObj.absolutePath === existPath){
-		throw Error('incorrect path,bfs must accept a exist path');
+File.bfsSync = function(_path){
+	if(_path[_path.length-1] != path.sep){
+		throw Error(`must be a dir,if you sure it's a dir,please add path.sep,in window:\\,unix:/`)
 	}
+	let fileAll ={};
+	let dirAll = {};
+	let symbolLink = {};
+	let pathObj = new Path(_path);
+	let existPath = pathObj.absolutePath;
+	let _list = fs.readdirSync(pathObj.absolutePath);
+	let _listStat = _list.map((e,index)=>{
+		return File.lstatSync(existPath+e);
+	})
 
+	let _dirList = [];
+	_list.forEach(function(e,index){
+		let _key = existPath+e;
+		if(_listStat[index].isDirectory()){
+			_key+=path.sep
+			dirAll[_key] = _list[index];
+			_dirList.push(_key);
+		}else if(_listStat[index].isSymbolicLink()){
+			symbolLink[_key] = e;
+		}else{
+			fileAll[_key] = e;
+		}
+	});
+
+	let resList = _dirList.map((e)=>{
+		return File.bfsSync(e);
+	});
+
+	resList.forEach(function(e){
+		fileAll = _.merge(fileAll,e.fileAll);
+		dirAll = _.merge(dirAll,e.dirAll);
+		symbolLink = _.merge(symbolLink,e.symbolLink)
+	})
+	//include _path
+	dirAll[existPath] = pathObj.pathInfo.name;
+	return {
+		fileAll,
+		dirAll,
+		symbolLink
+	}
 }
 
 File.lstat = async function(_path){
@@ -161,21 +207,109 @@ File.mkdirSync = function(_path,mode = 0o777){
 	}
 }
 
-// todo
+// @test delete node_modules //maybe stackoverflow?
 File.rmdir = async function(_path){
-	let pathObj = await utils.findExistDir(new Path(_path));
-	let existPath = pathObj.existPath;
-	if(pathObj.absolutePath === existPath){
-		throw Error('incorrect path,rmdir must accept a exist path');
-	}
-	if(pathObj.isDir){
-		// rmdir
-	}else{
-		//is file rm file
-	}
-
+	let {fileAll,dirAll,symbolLink} = await File.bfs(_path);
+	//delete file 
+	let fileList = Object.keys(fileAll).concat(Object.keys(symbolLink)).map(function(e){
+		File.deleteFile(e);
+	});
+	fileList = await Promise.all(fileList);
+	let dirList = Object.keys(dirAll);
+	dirList.map(function(e){
+		File.rawrmdir(e);
+	});
+	await Promise.all(dirList);
+	return true;
 }
 
+File.rmdirSync = function(_path){
+	let {fileAll,dirAll,symbolLink} = File.bfsSync(_path);
+	let fileList = Object.keys(fileAll).concat(Object.keys(symbolLink)).map(function(e){
+		File.deleteFileSync(e);
+	});
+	let dirList = Object.keys(dirAll);
+	dirList.map(function(e){
+		File.rawrmdirSync(e);
+	});
+	return true;
+}
+
+File.rawrmdir = async function(_path){
+	return new Promise(function(resolve,reject){
+		fs.rmdir(_path,function(err){
+			if(err)
+				reject(err);
+			resolve(true);
+		})
+	})
+}
+
+File.rawrmdirSync = fs.rmdirSync;
+
+File.ls = async function(_path,option){
+	return new Promise(function(){
+		fs.readdir(_path,option,function(err,list){
+			if(err)
+				reject(err)
+			resolve(list);
+		})
+	})
+}
+File.lsSync = fs.readdirSync;
+
+File.ll = async function(_path,option){
+	pathObj = new Path(_path);
+	let list = rawList = File.lsSync(_path,option);
+	list = list.map(function(e){
+		return File.lstat(pathObj.absolutePath+e);
+	});
+	list = await Promise.all(list);
+   	list = list.map(function(e,index){
+   		e = {raw:e}
+   		e.name = rawList[index];
+   		e.createTime = e.raw.birthtime;
+   		e.modifTime = e.raw.mtime;
+   		e.isDir = e.raw.isDirectory();
+   		e.path = pathObj.absolutePath+rawList[index];
+   		e.path = e.isDir?e.path+path.sep:e.path;
+   		return e;
+   	});
+
+   	return list;
+}
+File.llSync = function(_path,option){
+	pathObj = new Path(_path);
+	let list = rawList = File.lsSync(_path,option);
+	list = list.map(function(e){
+		return File.lstatSync(pathObj.absolutePath+e);
+	});
+	
+   	list = list.map(function(e,index){
+   		e = {raw:e}
+   		e.name = rawList[index];
+   		e.createTime = e.raw.birthtime;
+   		e.modifTime = e.raw.mtime;
+   		e.isDir = e.raw.isDirectory();
+   		e.path = pathObj.absolutePath+rawList[index];
+   		e.path = e.isDir?e.path+path.sep:e.path;
+   		return e;
+   	});
+   	
+   	return list;
+}
+
+File.deleteFile = async function(_path){
+	return new Promise(function(resolve,reject){
+		fs.unlink(_path,function(err){
+			if(err)
+				reject(err);
+			resolve(true);
+		})
+	})
+}
+
+File.deleteFileSync = fs.unlinkSync
 File.open = async function(_path,flag,mode=0o666){ //open file will not create dir automatally
 	return await new Promise(function(resolve,reject){
 		fs.open(_path,flag,mode,function(err,fd){

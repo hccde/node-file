@@ -3,9 +3,10 @@ let utils = require('./lib/utils');
 let Path = require('./lib/interface/Path');
 let path = require('path');
 let fs = require('fs');
-File.bfs('./my/').then(function(value){
-	console.log(value)
-});
+
+// console.log(File.llSync('./test/'));
+// console.log(File.rmdirSync('./softlink/'))
+// console.log(File.bfsSync('./my/'))
 // fs.readdir('./my',function(err,list){
 	// if(err)
 		// console.log(err)
