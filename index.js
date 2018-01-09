@@ -8,5 +8,4 @@ mixin(File,dir);
 mixin(File,file);
 mixin(File,helper);
 mixin(File,url);
-
 module.exports = File;

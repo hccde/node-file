@@ -3,7 +3,7 @@ let path = require('path');
 let Path = require('../lib/interface/Path');
 let _ = require('lodash');
 let fs = require('fs');
-let File = require('./file');
+let File = require('../lib/interface/File');
 
 module.exports = {
     watch() {

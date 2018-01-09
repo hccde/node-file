@@ -3,7 +3,7 @@ let path = require('path');
 let Path = require('../lib/interface/Path');
 let _ = require('lodash');
 let fs = require('fs');
-let File = require('./file');
+let File = require('../lib/interface/File');
 
 module.exports = {
 async deleteFile(_path){
@@ -36,7 +36,6 @@ async close(fd){
 	})
 },
 closeSync:fs.closeSync,
-// @test
 async write(dest,buffer,offset,length,position){
 	let fd;
 	if(typeof dest === 'string'){

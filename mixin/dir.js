@@ -3,7 +3,8 @@ let path = require('path');
 let Path = require('../lib/interface/Path');
 let _ = require('lodash');
 let fs = require('fs');
-let File = require('./file');
+let File = require('../lib/interface/File');
+
 module.exports = {
     async delete(_path) { //delete file or dir
         let pathObj = new Path(_path);
@@ -13,7 +14,7 @@ module.exports = {
             return await File.deleteFile(_path)
         } else {
             // dir
-            return await File.rmdir(_path)
+            return await File.rmdir(_path);
         }
     },
     deleteSync(_path) {
@@ -76,7 +77,7 @@ module.exports = {
         let pathObj = await utils.findExistDir(new Path(_path));
         let existPath = pathObj.existPath;
         if (pathObj.absolutePath !== existPath) {
-            throw Error(`incorrect path:${pathObj.absolutePath},bfs must accept a exist path`);
+            throw Error(`incorrect path:${pathObj.absolutePath},function must accept a exist path`);
         }
         //include _path
         dirAll[existPath] = pathObj.pathInfo.name;
