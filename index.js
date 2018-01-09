@@ -1,5 +1,6 @@
 let utils = require('./lib/utils');
 let path = require('path');
+let mixin = require('./lib/mixin.js');
 let Path = require('./lib/interface/Path');
 let _ = require('lodash');
 let fs = require('fs');
@@ -44,6 +45,7 @@ class File {
 	static readFileSync(){}
 	static appendFile(){}
 	static appendFileSync(){}
+	// static write
 	//dir
 	static mkdirSync(){}
 	static mkdir(){}
@@ -132,7 +134,7 @@ File.copySync = function(source,dest,force = true){
 		return File.rawcopyFileSync(source,dest);
 	}
 	let rootstr = '';
-	let {fileAll,dirAll,symbolLink} = await File.bfs(source);
+	let {fileAll,dirAll,symbolLink} = File.bfsSync(source);
 	let dirList = Object.keys(dirAll)
 	dirList.map(function(e,index){
 		if(index === 0){
@@ -671,7 +673,9 @@ File.readFile= async function(_path,option){
 }
 File.readFileSync = fs.readFileSync;
 
-static File.watch = function(){
+File.watch = function(){
 	//todo
 }
+let dir = require('./mixin/dir.js');
+mixin(File,dir)
 module.exports = File

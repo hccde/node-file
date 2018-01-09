@@ -6,7 +6,8 @@ let fs = require('fs');
 // File.delete('./my/').then(function(value){
 // 	console.log(value)
 // });
-File.merge('./my/','./my2/')
+console.log(File.test())
+// File.merge('./my/','./my2/')
 // files.move('./my/','./my2/')
 // File.copy('./my/a.js','./my2/')
 // File.flat('./lib/').then(function(value){
