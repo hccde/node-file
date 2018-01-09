@@ -9,16 +9,24 @@ class File {
 	}
 	//local
 	static copy(){}
-	static copyFile(){}
+	static copySync(){}
+	static rawcopyFile(){}
+	static rawcopyFileSync(){}
 	static merge(){}
 	static move(){}
 	static flat(){}
 	static bfs(){}
 	static delete(){}
+	static mergeSync(){}
+	static moveSync(){}
+	static flatSync(){}
+	static bfsSync(){}
+	static deleteSync(){}
 
 	//todo softlink circle
 	//when search file
 	static search(){}
+	static searchSync(){}
 	
 	//file
 	static write(){}
@@ -34,6 +42,8 @@ class File {
 	static deleteFileSync(){}
 	static readFile(){}
 	static readFileSync(){}
+	static appendFile(){}
+	static appendFileSync(){}
 	//dir
 	static mkdirSync(){}
 	static mkdir(){}
@@ -50,7 +60,6 @@ class File {
 
 	static server(){}
 	static watch(){}
-	static append(){}
 	//http
 	static get(){}
 	static post(){}
@@ -62,6 +71,9 @@ File.merge = async function(dest,source){
 		throw Error(`merge target must be dir`);
 	}
 	return await File.copy(source,dest,false);
+}
+File.mergeSync = function(dest,source){
+
 }
 //todo sigle file 
 File.copy = async function(source,dest,force = true){//if has existed,will delete
@@ -103,6 +115,44 @@ File.copy = async function(source,dest,force = true){//if has existed,will delet
 	await Promise.all(fileList);
 	return true;
 }
+File.copySync = function(source,dest,force = true){
+	let pathObj = new Path(dest);
+	if(force == true){//dir has existed,delete it
+		try{
+			File.rmdirSync(dest);
+		}catch(e){
+			// do nothing
+		}
+	}
+	if(source[source.length-1] !== path.sep){
+		let sourcePathObj = new Path(source);
+		let name = sourcePathObj.pathInfo.name+sourcePathObj.pathInfo.ext;
+		File.mkdirSync(dest)
+		pathObj.isDir?dest += name:void 0;
+		return File.rawcopyFileSync(source,dest);
+	}
+	let rootstr = '';
+	let {fileAll,dirAll,symbolLink} = await File.bfs(source);
+	let dirList = Object.keys(dirAll)
+	dirList.map(function(e,index){
+		if(index === 0){
+			rootstr = e;
+		}
+		if(force){
+			fs.mkdirSync(pathObj.absolutePath + Path.convToRelative(rootstr,e));
+		}else{
+			File.mkdirSync(pathObj.absolutePath + Path.convToRelative(rootstr,e))
+		}
+	});
+
+	//cp file
+	_.merge(fileAll,symbolLink);
+
+	let fileList = Object.keys(fileAll).map(function(e){
+		File.rawcopyFileSync(e,pathObj.absolutePath + Path.convToRelative(rootstr,e));
+	});
+	return true;
+}
 
 File.rawcopyFile = async function(src,dest,flags=0){
 	return new Promise(function(resolve,reject){
@@ -119,6 +169,12 @@ File.rawcopyFileSync = fs.copyFile;
 File.move = async function(source,dest){
 	await File.copy(source,dest);
 	return await File.delete(source);
+}
+
+File.moveSync = async function(source,dest){
+	File.copySync(source,dest);
+	File.deleteSync(source);
+	return true;
 }
 
 File.flat = async function(_path){
@@ -139,7 +195,24 @@ File.flat = async function(_path){
 	});
 	return res;
 }
-
+File.flatSync = function(_path){
+	let flatList = [];
+	// let pathObj = await utils.findExistDir(new Path(_path));
+	// if(pathObj.absolutePath !== pathObj.existPath){
+	// 	throw Error(`incorrect path:${pathObj.absolutePath},flat must accept a exist path`);	
+	// }
+	let {fileAll,dirAll,symbolLink} = File.bfsSync(_path);
+	fileAll = _.merge(fileAll,symbolLink)
+	let fileList = Object.keys(fileAll);
+	let res = [];
+	fileList.map(function(e,index){
+		let flag = res.find(function(el){
+			return el === fileAll[e];
+		});
+		flag !== void 0 ?res.push(e):res.push(fileAll[e]);
+	});
+	return res;
+}
 File.delete = async function(_path){//delete file or dir
 	let pathObj = new Path(_path);
 	let absolutePath = pathObj.absolutePath;
@@ -151,9 +224,48 @@ File.delete = async function(_path){//delete file or dir
 		return await File.rmdir(_path)
 	}
 }
-//todo accept compare function
-File.search = async function(_path,type,time{//serach file or dir
+File.deleteSync = function(_path){
+	let pathObj = new Path(_path);
+	let absolutePath = pathObj.absolutePath;
+	if(!pathObj.isDir){
+		//fileAll
+		return File.deleteFileSync(_path)
+	}else{
+		// dir
+		return File.rmdirSync(_path)
+	}
+}
 
+File.search = async function(_path,factor){//serach file or dir
+	let {fileAll,dirAll,symbolLink} = await File.bfs(_path);
+	if(typeof factor === "string"){
+		let keys = Object.keys(fileAll);
+		for(let i = 0;i<keys.length;i++){
+			if(fileAll[e] === name){
+				return {
+					e:fileAll[e]
+				}
+			}
+		}
+	}else{
+		return factor(fileAll);
+	}
+}
+
+File.searchSync = function(_path,factor){
+	let {fileAll,dirAll,symbolLink} = File.bfsSync(_path);
+	if(typeof factor === "string"){
+		let keys = Object.keys(fileAll);
+		for(let i = 0;i<keys.length;i++){
+			if(fileAll[e] === name){
+				return {
+					e:fileAll[e]
+				}
+			}
+		}
+	}else{
+		return factor(fileAll);
+	}
 }
 //include path 
 File.bfs = async function(_path){
@@ -558,4 +670,8 @@ File.readFile= async function(_path,option){
 	})
 }
 File.readFileSync = fs.readFileSync;
+
+static File.watch = function(){
+	//todo
+}
 module.exports = File
