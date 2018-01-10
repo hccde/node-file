@@ -9,12 +9,15 @@ module.exports = {
     async delete(_path) { //delete file or dir
         let pathObj = new Path(_path);
         let absolutePath = pathObj.absolutePath;
+        let value = '';
         if (!pathObj.isDir) {
             //fileAll
-            return await File.deleteFile(_path)
+            value = await File.deleteFile(_path)
+            return value;
         } else {
             // dir
-            return await File.rmdir(_path);
+            value = await File.rmdir(_path);
+            return value;
         }
     },
     deleteSync(_path) {

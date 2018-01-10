@@ -23,8 +23,14 @@ module.exports = {
         }
         return File.copySync(source, dest, false);
     },
+    //todo  dest should be parent dir important 
     async copy(source, dest, force = true) { //if has existed,will delete
+        let sourcePathObj = new Path(source);
         let pathObj = new Path(dest);
+        if(sourcePathObj.absolutePath === pathObj.absolutePath){
+            await true;
+            return true;
+        }
         if (force == true) { //dir has existed,delete it
             try {
                 await File.rmdir(dest);
@@ -33,11 +39,11 @@ module.exports = {
             }
         }
         if (source[source.length - 1] !== path.sep) {
-            let sourcePathObj = new Path(source);
+            
             let name = sourcePathObj.pathInfo.name + sourcePathObj.pathInfo.ext;
             await File.mkdir(dest)
             pathObj.isDir ? dest += name : void 0;
-            return await File.rawcopyFile(source, dest);
+            return File.rawcopyFile(source, dest);
         }
         let rootstr = '';
         let {
@@ -67,7 +73,11 @@ module.exports = {
         return true;
     },
     copySync(source, dest, force = true) {
+        let sourcePathObj = new Path(source);
         let pathObj = new Path(dest);
+        if(sourcePathObj.absolutePath === pathObj.absolutePath){
+            return true;
+        }
         if (force == true) { //dir has existed,delete it
             try {
                 File.rmdirSync(dest);
@@ -76,7 +86,6 @@ module.exports = {
             }
         }
         if (source[source.length - 1] !== path.sep) {
-            let sourcePathObj = new Path(source);
             let name = sourcePathObj.pathInfo.name + sourcePathObj.pathInfo.ext;
             File.mkdirSync(dest)
             pathObj.isDir ? dest += name : void 0;
@@ -117,12 +126,22 @@ module.exports = {
             })
         })
     },
-    rawcopyFileSync: fs.copyFile,
+    rawcopyFileSync: fs.copyFileSync,
     async move(source, dest) {
+        if(new Path(source).absolutePath === 
+            new Path(dest).absolutePath ){
+            await true;
+            return true
+        }
         await File.copy(source, dest);
-        return await File.delete(source);
+        let value = await File.delete(source);
+        return value;
     },
-    async moveSync(source, dest) {
+    moveSync(source, dest) {
+        if(new Path(source).absolutePath === 
+            new Path(dest).absolutePath ){
+            return true
+        }
         File.copySync(source, dest);
         File.deleteSync(source);
         return true;
