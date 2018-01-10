@@ -45,10 +45,9 @@ async write(dest,buffer,offset,length,position){
 		}
 		await File.mkdir(pathObj);
 		fd = await File.open(pathObj.absolutePath,'w');
-	}else if(dest instanceof Number){
+	}else if(typeof dest === 'number'){
 		fd = dest;
 	}
-
 	if(buffer instanceof Buffer){
 		return await File.rawWrite(fd,buffer,offset,length,position);
 	}else{//write string  rename params
@@ -70,7 +69,7 @@ writeSync(dest,buffer,offset,length,position){
 	}
 
 	if(buffer instanceof Buffer){
-		return File.writeSync(fd,buffer,offset,length,position);
+		return fs.writeSync(fd,buffer,offset,length,position);
 	}else{//write string  rename params
 		let string = buffer,positionStr = offset,encoding = length;
 		return File.writeStrSync(fd,string,positionStr,encoding)
@@ -109,17 +108,17 @@ async writeFile(_path,_data,option){
 		}
 		await File.mkdir(pathObj);
 		fd = await File.open(pathObj.absolutePath,'w');
-	}else if(_path instanceof Number){
+	}else if(typeof fd  === 'number'){
 		fd = dest;
 	}
-	return await File.rawWriteFile(_path,_data,option);
+	return await File.rawWriteFile(fd,_data,option);
 },
 async rawWriteFile(_path,_data,option){
-	return await new Promise(function(resolve,reject){
-		fs.writeFile(_path,option,function(err){
+	return new Promise(function(resolve,reject){
+		fs.writeFile(_path,_data,option,function(err){
 			if(err)
 				reject(err);
-			resolve();
+			resolve(true);
 		})
 	})
 },
@@ -132,10 +131,11 @@ writeFileSync(_path,_data,option){
 		}
 		File.mkdirSync(pathObj);
 		fd = File.openSync(pathObj.absolutePath,'w');
-	}else if(_path instanceof Number){
+	}else if(typeof _path === 'number'){
 		fd = dest;
 	}
-	return fs.writeFileSync(_path,_data,option)
+	fs.writeFileSync(fd,_data,option);
+	return true;
 },
 async readFile(_path,option){
 	return await new Promise(function(resolve,reject){

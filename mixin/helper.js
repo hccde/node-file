@@ -170,43 +170,5 @@ module.exports = {
             flag !== void 0 ? res.push(e) : res.push(fileAll[e]);
         });
         return res;
-    },
-    async search(_path, factor) { //serach file or dir
-        let {
-            fileAll,
-            dirAll,
-            symbolLink
-        } = await File.bfs(_path);
-        if (typeof factor === "string") {
-            let keys = Object.keys(fileAll);
-            for (let i = 0; i < keys.length; i++) {
-                if (fileAll[e] === name) {
-                    return {
-                        e: fileAll[e]
-                    }
-                }
-            }
-        } else {
-            return factor(fileAll);
-        }
-    },
-    searchSync(_path, factor) {
-        let {
-            fileAll,
-            dirAll,
-            symbolLink
-        } = File.bfsSync(_path);
-        if (typeof factor === "string") {
-            let keys = Object.keys(fileAll);
-            for (let i = 0; i < keys.length; i++) {
-                if (fileAll[e] === name) {
-                    return {
-                        e: fileAll[e]
-                    }
-                }
-            }
-        } else {
-            return factor(fileAll);
-        }
     }
 }

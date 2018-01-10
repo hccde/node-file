@@ -36,11 +36,13 @@ module.exports = {
         } = await File.bfs(_path);
         if (typeof factor === "string") {
             let keys = Object.keys(fileAll);
+            let e = '';
             for (let i = 0; i < keys.length; i++) {
-                if (fileAll[e] === name) {
-                    return {
-                        e: fileAll[e]
-                    }
+                e = keys[i] ;
+                if (fileAll[e]  === factor) {
+                    let res = {};
+                    res[e] = fileAll[e];
+                    return res;
                 }
             }
         } else {
@@ -55,11 +57,13 @@ module.exports = {
         } = File.bfsSync(_path);
         if (typeof factor === "string") {
             let keys = Object.keys(fileAll);
+            let e = '';
             for (let i = 0; i < keys.length; i++) {
-                if (fileAll[e] === name) {
-                    return {
-                        e: fileAll[e]
-                    }
+                e = keys[i] ;
+                if (fileAll[e]  === factor) {
+                    let res = {};
+                    res[e] = fileAll[e];
+                    return res;
                 }
             }
         } else {
@@ -192,7 +196,7 @@ module.exports = {
             return _path.absolutePath;
 
         } else {
-            await true;
+            await false;
             throw Error(`first param must be string or an instance of Path`)
         }
     },
@@ -237,10 +241,12 @@ module.exports = {
         });
         fileList = await Promise.all(fileList);
         let dirList = Object.keys(dirAll);
-        dirList.map(function(e) {
-            File.rawrmdir(e);
+        dirList = dirList.sort(function(a,b){//todo:async,if needed
+            return a.length <= b.length;
         });
-        await Promise.all(dirList);
+        dirList.map(function(e) {
+            File.rawrmdirSync(e);
+        });
         return true;
     },
     rmdirSync(_path) {
@@ -253,6 +259,9 @@ module.exports = {
             File.deleteFileSync(e);
         });
         let dirList = Object.keys(dirAll);
+        dirList = dirList.sort(function(a,b){//todo:async,if needed
+            return a.length <= b.length;
+        });
         dirList.map(function(e) {
             File.rawrmdirSync(e);
         });
