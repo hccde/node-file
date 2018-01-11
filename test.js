@@ -4,11 +4,10 @@ let Path = require('./lib/interface/Path');
 let path = require('path');
 let process = require('process');
 let fs = require('fs');
-let stream = new File.WriteStream('./util.js',{
+let stream = new File.ReadStream('./example.txt',{
 	fd:null
 });
-stream.on('data',function(data){
-	console.log(1)
-});
+let writeStream = new File.WriteStream('./examplewrite.txt');
+/
 // console.log(stream)
-stream.write('aa');
+stream.pipe(writeStream);
