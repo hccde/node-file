@@ -3,6 +3,8 @@ let path = require('path');
 let Path = require('../lib/interface/Path');
 let _ = require('lodash');
 let fs = require('fs');
+let WriteStream = require('../lib/interface/WriteStream');
+let ReadStream = require('../lib/interface/ReadStream');
 let File = require('../lib/interface/File');
 
 module.exports = {
@@ -146,5 +148,12 @@ async readFile(_path,option){
 		})
 	})
 },
-readFileSync:fs.readFileSync
+readFileSync:fs.readFileSync,
+streamCopy:function(src,dest){
+	//todo
+	let readStream = new ReadStream(src);
+	let writeStream = new WriteStream(dest);
+	readStream.pipe(writeStream);
+	return readStream;
+}
 }

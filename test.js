@@ -4,10 +4,4 @@ let Path = require('./lib/interface/Path');
 let path = require('path');
 let process = require('process');
 let fs = require('fs');
-let stream = new File.ReadStream('./example.txt',{
-	fd:null
-});
-let writeStream = new File.WriteStream('./examplewrite.txt');
-/
-// console.log(stream)
-stream.pipe(writeStream);
+let stream = File.streamCopy('./example.txt','./examplewrite.txt');
