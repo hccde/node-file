@@ -48,9 +48,37 @@ module.exports = {
 			})
 		})
 	},
-	async ftpGet(path,option){
+	async ftpGet(path,dest,option){//dir todo
+		if(typeof dest === 'object'){
+			option = dest;
+			dest = void 0;
+		}
 		new Promise(function(reslove,reject){
-
+			let c = new Client();
+			let name = path.split('/').pop();
+			c.on('ready', function() {
+	    		c.get(path, function(err, stream){
+	      			if (err){
+	      				reject(err);
+	      			}
+	      			stream.once('close', function() { c.end(); });
+	      			if(dest === void 0){
+						dest = './' + name;
+					}
+					try{
+						if(fs.lstatSync(dest).isDirectory()){
+							dest +='/'+name;
+						}
+					}catch(e){
+						//do nothing
+					}
+	      			stream.pipe(fs.createWriteStream(dest));
+	    		});
+	  		});
+  			c.connect(option);
 		})
+	},
+	async ftpUpload(){//dir  unixtime modif
+
 	}
 }
