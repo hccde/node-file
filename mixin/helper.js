@@ -5,8 +5,12 @@ let _ = require('lodash');
 let fs = require('fs');
 let File = require('../lib/interface/File');
 let chokidar = require('chokidar');
+let express = require('express');
 module.exports = {
     watch:chokidar.watch,
+    server:function(dir){
+        //todo
+    },
     async merge(dest, source) {
         let destPathObj = new Path(dest);
         if (!destPathObj.isDir) {
