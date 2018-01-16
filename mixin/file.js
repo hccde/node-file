@@ -150,7 +150,14 @@ async readFile(_path,option){
 },
 readFileSync:fs.readFileSync,
 streamCopy:function(src,...dests){
-	let readStream = new ReadStream(src);
+	let readStream;
+	if(typeof src === 'string'){
+		readStream = new ReadStream(src);	
+	}else if(src.pipe){
+		readStream = src;
+	}else{
+		throw Error('src is error');
+	}
 	for(let dest of dests){
 		let writeStream = new WriteStream(dest);
 		readStream.pipe(writeStream);
@@ -166,9 +173,16 @@ streamLargeFile(src,dest){
 		return File.streamCopy(src,dest);
 	}
 	let start =  destInfo.size;
-	let readStream = new ReadStream(src,{
-		start:start
-	},start);
+	let readStream;
+	if(typeof src === 'string'){
+		readStream = new ReadStream(src,{
+			start:start
+		},start);
+	}else if(src.pipe){
+		readStream = src
+	}else{
+		throw Error('src is Error');
+	}
 	let fd = fs.openSync(dest,'a');
 	let writeStream = new WriteStream(dest,{
 		fd:fd,

@@ -4,11 +4,9 @@ let Path = require('../lib/interface/Path');
 let _ = require('lodash');
 let fs = require('fs');
 let File = require('../lib/interface/File');
-
+let chokidar = require('chokidar');
 module.exports = {
-    watch() {
-        //todo
-    },
+    watch:chokidar.watch,
     async merge(dest, source) {
         let destPathObj = new Path(dest);
         if (!destPathObj.isDir) {
