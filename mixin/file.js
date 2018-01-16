@@ -149,10 +149,34 @@ async readFile(_path,option){
 	})
 },
 readFileSync:fs.readFileSync,
-streamCopy:function(src,dest){
-	//todo
+streamCopy:function(src,...dests){
 	let readStream = new ReadStream(src);
-	let writeStream = new WriteStream(dest);
+	for(let dest of dests){
+		let writeStream = new WriteStream(dest);
+		readStream.pipe(writeStream);
+	}
+	return readStream;
+},
+streamLargeFile(src,dest){
+	let destInfo;
+	try{
+		destInfo = fs.lstatSync(dest);
+	}catch(e){
+		//no file exist
+		return File.streamCopy(src,dest);
+	}
+	let start =  destInfo.size;
+	let readStream = new ReadStream(src,{
+		start:start
+	},start);
+	let fd = fs.openSync(dest,'a');
+	let writeStream = new WriteStream(dest,{
+		fd:fd,
+		start:start
+	});
+	readStream.on('finish',function(){
+		fs.close(fd);
+	});
 	readStream.pipe(writeStream);
 	return readStream;
 }

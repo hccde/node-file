@@ -4,4 +4,6 @@ let Path = require('./lib/interface/Path');
 let path = require('path');
 let process = require('process');
 let fs = require('fs');
-let stream = File.streamCopy('./example.txt','./examplewrite.txt');
+
+File.streamLargeFile('/Users/admos/Downloads/en_windows_xp_professional_64-bit_dvd.iso.zip',
+	'/Users/admos/Downloads/en_windows_xp_professional_64-bit_dvds.iso.zip')
