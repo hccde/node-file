@@ -29,6 +29,7 @@
   "dependencies": {
     "chokidar": "^2.0.0",
     "express": "^4.16.2",
+    "ftp": "^0.3.10",
     "glob": "^7.1.2",
     "lodash": "^4.17.4",
     "request": "^2.83.0"
