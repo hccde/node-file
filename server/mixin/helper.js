@@ -161,6 +161,10 @@ module.exports = {
     },
     flatSync(_path) {
         let flatList = [];
+        // let pathObj = await utils.findExistDir(new Path(_path));
+        // if(pathObj.absolutePath !== pathObj.existPath){
+        // 	throw Error(`incorrect path:${pathObj.absolutePath},flat must accept a exist path`);	
+        // }
         let {
             fileAll,
             dirAll,

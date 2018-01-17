@@ -8,8 +8,14 @@ let fs = require('fs');
 // 	host:'ftp.cuhk.hk'
 // })
 
-File.ftpGet('pub/pc/windows/ws_ftp/',{
-	host:'ftp.cuhk.hk'
-}).then(function(e){
-	console.log(e)
-})
+// File.ftpGet('pub/pc/windows/ws_ftp/',{
+// 	host:'ftp.cuhk.hk'
+// }).then(function(e){
+// 	console.log(e)
+// })
+
+File.copy('./mixin','./server');
+// utils.findExistDir(new Path('./mixin'))
+// utils.findExistDir(new Path('./mixin')).then(function(val){
+	// console.log(val)
+// });
