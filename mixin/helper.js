@@ -26,7 +26,7 @@ module.exports = {
         return File.copySync(source, dest, false);
     },
     //todo  dest should be parent dir important 
-    async copy(source, dest, force = true) { //if has existed,will delete
+    async copy(source, dest='.', force = true) { //if has existed,will delete
         let sourcePathObj = new Path(source);
         let pathObj = new Path(dest);
         if(sourcePathObj.absolutePath === pathObj.absolutePath){

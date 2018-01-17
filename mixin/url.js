@@ -97,11 +97,11 @@ module.exports = {
 		let pathInfo = await File.ftpDir(_path,c);
 		pathInfo.forEach(function(e){
 			if(e.type === 'd'){
-				dirAll[path+'/'+e.name] = e.name;
+				dirAll[_path+'/'+e.name] = e.name;
 			}else if(e.type === '-'){
-				fileAll[path+'/'+e.name] = e.name;
+				fileAll[_path+'/'+e.name] = e.name;
 			}else{
-				symbolLink[path+'/'+e.name] = e.name;
+				symbolLink[_path+'/'+e.name] = e.name;
 			}
 		});
 		let infoList = []
@@ -147,13 +147,12 @@ module.exports = {
 			c = await File.ftpLogin(connect);
 		}
 		await new Promise(function(reslove,reject){
-			let c = new Client();
 			let name = _path.split('/').pop();
 	    	c.get(_path, function(err, stream){
 	      		if (err){
 	      			reject(err);
 	      		}
-	      		stream.once('close', function() { c.end(); });
+	      		stream.once('close', function() { c.end(); reslove(true)});
 	      		if(dest === void 0){
 					dest = './' + name;
 				}
@@ -164,9 +163,10 @@ module.exports = {
 				}catch(e){
 					// do nothing
 				}
-	      		stream.pipe(fs.createWriteStream(dest));
+	      		stream.pipe(fs.createWriteStream('ws_ftp/ws_ftple.exe'));
 	    	});
 		});
+
 		if(connect !== c)
 			c.end();
 		return true;
@@ -187,17 +187,17 @@ module.exports = {
 		let name = '';
 		if(await File.ftpIsDir(path,c)){
 			name = _path.split('/').pop();
+			console.log(name)
+			File.mkdirSync(name+'/');
 		}
 		let dirList = Object.keys(dirAll);
 		let fileList = Object.keys( _.merge(fileAll,symbolLink) );
 		for(let i = 0;i<dirList.length;i++){
-			console.log(_path,dirList[i])
 			let relative = Path.convToRelative(_path,dirList[i]);
 			console.log(name+relative)
 			File.mkdirSync(name+relative);//todo mkdir need to fixed
 		}
 		let promiseList = fileList.map(function(e){
-			console.log(fileList);
 			let relative = Path.convToRelative(_path,e);
 			let d = name+relative;
 			return File.ftpGetFile(e,d,c);
@@ -207,7 +207,29 @@ module.exports = {
 			c.end();
 		return true;
 	},
-	async ftpUpload(){//dir  unixtime modif
+	async ftpMkdir(){
 
+	},
+	async ftpUploadFile(){
+
+	},
+	async ftpUpload(src,dest,connect){//dir  unixtime modif
+		src = Path.rmTail(src);
+		let c;
+		if(typeof dest === 'object'){
+			connect = dest;
+			dest = '.';
+		}
+		if(connect instanceof Client){
+			c = connect;
+		}else{
+			c = await File.ftpLogin(connect);
+		}
+		//todo
+		let {dirAll,fileAll,symbolLink} = await File.bfs(src);
+
+		if(connect !== c)
+			c.end();
+		return true;
 	}
 }

@@ -75,16 +75,11 @@ module.exports = {
     },
     //include path 
     async bfs(_path) {
-        if (_path[_path.length - 1] != path.sep) {
-            throw Error(`must be a dir,if you sure it's a dir,please add path.sep,in window:\\,unix:/`)
-        }
-        let fileAll = {};
-        let dirAll = {};
-        let symbolLink = {};
+        let fileAll = {},dirAll = {},symbolLink = {};
         let pathObj = await utils.findExistDir(new Path(_path));
         let existPath = pathObj.existPath;
-        if (pathObj.absolutePath !== existPath) {
-            throw Error(`incorrect path:${pathObj.absolutePath},function must accept a exist path`);
+        if(!fs.lstatSync(existPath).isDirectory()){
+            throw Error("it's file");
         }
         //include _path
         dirAll[existPath] = pathObj.pathInfo.name;
@@ -124,14 +119,12 @@ module.exports = {
 
     },
     bfsSync(_path) {
-        if (_path[_path.length - 1] != path.sep) {
-            throw Error(`must be a dir,if you sure it's a dir,please add path.sep,in window:\\,unix:/`)
-        }
-        let fileAll = {};
-        let dirAll = {};
-        let symbolLink = {};
+        let fileAll = {},dirAll = {},symbolLink = {};
         let pathObj = new Path(_path);
         let existPath = pathObj.absolutePath;
+        if(!fs.lstatSync(existPath).isDirectory()){
+            throw Error("it's file");
+        }
         //include _path
         dirAll[existPath] = pathObj.pathInfo.name;
 
