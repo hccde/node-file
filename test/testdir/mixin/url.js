@@ -207,14 +207,8 @@ module.exports = {
 			c.end();
 		return true;
 	},
-	async ftpMkdir(){
-
-	},
-	async ftpUploadFile(){
-
-	},
-	async ftpUpload(src,dest,connect){//dir  unixtime modif
-		src = Path.rmTail(src);
+	async ftpMkdir(_path,connect){
+		_path = Path.rmTail(_path);
 		let c;
 		if(typeof dest === 'object'){
 			connect = dest;
@@ -225,9 +219,94 @@ module.exports = {
 		}else{
 			c = await File.ftpLogin(connect);
 		}
-		//todo
-		let {dirAll,fileAll,symbolLink} = await File.bfs(src);
+		await new Promise(function(reslove,reject){
+			c.mkdir(_path,true,function(err){
+				if(err)
+					reject(err)
+				reslove(true);
+			})
+		})
+		if(connect !== c)
+			c.end();
+		return true;
+	},
+	async ftpRmdir(_path,connect){
+		_path = Path.rmTail(_path);
+		let c;
+		if(typeof dest === 'object'){
+			connect = dest;
+			dest = '.';
+		}
+		if(connect instanceof Client){
+			c = connect;
+		}else{
+			c = await File.ftpLogin(connect);
+		}
+		await new Promise(function(reslove,reject){
+			c.rmdir(_path,true,function(err){
+				if(err)
+					reject(err)
+				reslove(true);
+			})
+		})
+		if(connect !== c)
+			c.end();
+		return true;
+	},
+	async ftpUploadFile(src,dest,connect){
+		let c;
+		if(typeof dest === 'object'){
+			connect = dest;
+			dest = '.';
+		}
+		if(connect instanceof Client){
+			c = connect;
+		}else{
+			c = await File.ftpLogin(connect);
+		}
+		await new Promise(function(reslove,reject){
+			//do nothing
+			c.put(src,dest,function(err){
+				if(err)
+					reject(err)
+				reslove(true);
+			})
+		})
+		if(connect !== c)
+			c.end();
+		return true;
+	},
+	async ftpUpload(src,dest,connect){//dir  unixtime modif
+		let c;
+		if(typeof dest === 'object'){
+			connect = dest;
+			dest = '.';
+		}
+		if(connect instanceof Client){
+			c = connect;
+		}else{
+			c = await File.ftpLogin(connect);
+		}
+		let pathList = new Path(src).absolutePath.split(path.sep);
+		let name = pathList.pop();
+		let rootpath = pathList.join(path.sep);
+		//rm dir bfs localfile 
+		let resList = await Promise.all([File.bfs(src),
+			File.ftpRmdir(dest+path.sep+rootpath,c).catch(function(e){
+			//do nothing
+			})
+			]);
+		let { dirAll,fileAll,symbolLink } = resList[0];
+		let dirList = Object.keys(dirAll);
+		for(let i = 0;i<dirList.length;i++){
+			await File.ftpMkdir(dest+path.sep+Path.convToRelative(rootpath,dirList[i]),c);
+		}
+		let fileList = Object.keys(_.merge(fileAll,symbolLink));
 
+		let fileListPro = fileList.map(function(e){
+			File.ftpUploadFile(e,dest+path.sep+Path.convToRelative(rootpath,e),c);
+		})
+		await Promise.all(fileListPro);
 		if(connect !== c)
 			c.end();
 		return true;
