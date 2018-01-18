@@ -13,11 +13,12 @@ let fs = require('fs');
 // }).then(function(e){
 // 	console.log(e)
 // })
-File.ftpUpload('./mixin','.',{
-	port:2121,
-	user:'user',
-	password:12345
-})
+// File.ftpUpload('./node_modules','.',{
+// 	port:2121,
+// 	user:'user',
+// 	password:12345
+// })
+
 
 // File.ftpRmdir('./a',{
 // 	port:2121,

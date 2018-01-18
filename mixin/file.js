@@ -173,6 +173,9 @@ streamLargeFile(src,dest){
 		return File.streamCopy(src,dest);
 	}
 	let start =  destInfo.size;
+	if(fs.lstatSync(src).size <= start){
+		return true;
+	}
 	let readStream;
 	if(typeof src === 'string'){
 		readStream = new ReadStream(src,{

@@ -253,6 +253,16 @@ module.exports = {
 			c.end();
 		return true;
 	},
+	//todo single file
+	// async ftpHasFile(_path,connect){
+
+	// },
+	// async ftpUploadFileStream(){
+
+	// },
+	// async ftpGetFileStream(){
+
+	// }
 	async ftpUploadFile(src,dest,connect){
 		let c;
 		if(typeof dest === 'object'){
@@ -289,13 +299,18 @@ module.exports = {
 		}
 		let pathList = new Path(src).absolutePath.split(path.sep);
 		let name = pathList.pop();
+		if( !fs.lstatSync(src).isDirectory() ){
+			await File.ftpUploadFile(src,dest+path.sep+name,c);
+			if(connect !== c)
+				c.end();
+			return true;
+		}
 		let rootpath = pathList.join(path.sep);
 		//rm dir bfs localfile 
 		let resList = await Promise.all([File.bfs(src),
 			File.ftpRmdir(dest+path.sep+rootpath,c).catch(function(e){
 			//do nothing
-			})
-			]);
+			})]);
 		let { dirAll,fileAll,symbolLink } = resList[0];
 		let dirList = Object.keys(dirAll);
 		for(let i = 0;i<dirList.length;i++){
