@@ -197,7 +197,8 @@ streamLargeFile(src,dest){
 	readStream.pipe(writeStream);
 	return readStream;
 },
-splitFile(){
-	
+splitFile(src){
+	//todo
 }
+
 }
